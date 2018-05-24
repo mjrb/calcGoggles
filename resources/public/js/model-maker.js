@@ -159,14 +159,3 @@ modelMaker={
 	return f;
     }
 }
-modelMaker.draw();
-$("#coords").click(event=>{
-    event.preventDefault();
-    console.log("nd")
-    modelMaker.makeShape();
-});
-$("#draw").click(event=>{
-    event.preventDefault();
-    console.log("nd")
-    modelMaker.draw();
-});
