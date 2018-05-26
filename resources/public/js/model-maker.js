@@ -1,3 +1,12 @@
+limitedEval=math.eval
+math.import({
+  'import':     function () { throw new Error('Function import is disabled') },
+  'createUnit': function () { throw new Error('Function createUnit is disabled') },
+  'eval':       function () { throw new Error('Function eval is disabled') },
+  'parse':      function () { throw new Error('Function parse is disabled') },
+  'simplify':   function () { throw new Error('Function simplify is disabled') },
+  'derivative': function () { throw new Error('Function derivative is disabled') }
+}, {override: true});
 modelMaker={
     draw:function() {
 	var minx=parseInt($("#minx").val());
@@ -18,8 +27,7 @@ modelMaker={
             });
 	}
 	catch (err) {
-            console.log(err);
-            alert(err);
+            return(err)
 	}
     },
     makeShape:function(shape){
@@ -31,7 +39,7 @@ modelMaker={
 	var str="";
 	//str+="a:"+minx+" b:"+maxx+"\n";
 	var shape;
-	var fun=(e)=>math.eval($("#eq").val(),{x:e});
+	var fun=(e)=>limitedEval($("#eq").val(),{x:e});
 	if($("input:checked").val()=="rtrig")
 	    shape=modelMaker.makeRTrig(minx, maxx, N, fun);
 	if($("input:checked").val()=="square")
@@ -44,8 +52,7 @@ modelMaker={
 	s.name=shape.name;
 	s.f=shape.f;
 	s.v=shape.v;
-	s.user=$.cookie("uname");
-	console.log(JSON.stringify(shape));
+	//console.log(JSON.stringify(shape));
 	/*stitch.StitchClientFactory.create("calcgoggles-qwpga")
 	    .then((client)=>console.log("sucess!",client))
 	    .catch(console.err);*/
