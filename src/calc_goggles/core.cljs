@@ -1,25 +1,47 @@
 (ns calc-goggles.core
-    (:require [reagent.core :as reagent :refer [atom]]))
-
+  (:require [reagent.core :as reagent :refer [atom]]
+            [calc-goggles.create :refer [creator plot]]
+            [calc-goggles.view :refer [model-viewer]]
+            [calc-goggles.browse :refer [model-browser]]))
 (enable-console-print!)
+(defn lmao [] [:div "sss"])
 
-(println "This text is printed from src/calc-goggles/core.cljs. Go ahead and edit it and see reloading in action.")
-
-;; define your app data so that it doesn't get over-written on reload
+(defn widget1 []
+  [:div.alert-primary "this is widget 1"])
+(defn widget2 []
+  [:div.alert-danger "this is widget 2"])
 
 (defonce app-state (atom {:text "Hello world!"}))
+(defonce shape (atom #js{}))
+(defn set-shape [new-shape]
+  (print @shape)
+  (reset! shape new-shape)
+  (print @shape))
+(defonce content (atom [creator set-shape]))
+(defn thr []
+  widget1)
+(defn on-js-reload [] )
 
 
-(defn hello-world []
+(defn content-comp [cont]
+  (case cont
+    1 [widget1]
+    2 [widget2]
+    :br))
+(defn app []
   [:div
-   [:h1 (:text @app-state)]
-   [:h3 "Edit this and watch it change!"]])
+  [:input.btn.btn-primary
+   {:value "create" :type "button"
+    :on-click #(reset! content [creator set-shape])}]
+  [:input.btn.btn-primary
+   {:value "view" :type "button"
+    :on-click #(reset! content [model-viewer @shape])}]
+   [:input.btn.btn-primary
+   {:value "browse" :type "button"
+    :on-click #(reset! content [model-browser])}]
+   @content
+   ])
 
-(reagent/render-component [hello-world]
-                          (. js/document (getElementById "app")))
-
-(defn on-js-reload []
-  ;; optionally touch your app-state to force rerendering depending on
-  ;; your application
-  ;; (swap! app-state update-in [:__figwheel_counter] inc)
-)
+(reagent/render-component
+ [app]
+ (. js/document (getElementById "app")))
