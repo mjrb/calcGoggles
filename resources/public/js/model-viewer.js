@@ -32,7 +32,10 @@ function viewModel(shape){
 	controls=new THREE.OrbitControls(camera, renderer.domElement);
 	controls.addEventListener("change", render);
 	controls.enableZoom=true;
-	destructor(()=>controls.removeEventListener("change", render))
+	destructor(()=>{
+	    controls.removeEventListener("change", render);
+	    controls.dispose();
+	});
 
 	var geometry=new THREE.Geometry();
 	var v=shape.v.map((vert)=>new THREE.Vector3(vert[0],vert[1],vert[2]));
