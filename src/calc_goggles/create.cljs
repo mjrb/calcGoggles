@@ -1,29 +1,10 @@
 (ns calc-goggles.create
   (:require [reagent.core :as reagent :refer [atom]]
             [clojure.string :refer [blank?]]
-            [calc-goggles.view :refer [model-viewer]]))
-;;;;;;;;;;;;;; convinience functions ;;;;;;;;;;;;;;;
-(defn feild-value [id] (.-value (.getElementById js/document id)))
-(defn str-is-float? [string]
-  (-> string
-      (js/parseFloat)
-      (js/isNaN)
-      (not)))
-(defn draw [] (.  js/modelMaker draw))
-(defn make-shape [] (. js/modelMaker makeShape))
-(defn str-is-int? [string]
-  (some? (re-matches #"^[0-9]+$" string) ))
-;;wraps input with a label and br
-(defn label
-  ([label-text id elem-vec]
-  [:span
-   [:label {:for id} label-text]
-   elem-vec
-   [:br]])
-  ([label-text]
-   [:span
-    [:label label-text]
-    [:br]]))
+            [calc-goggles.view :refer [model-viewer]]
+            [calc-goggles.utils :refer [feild-value label
+                                        str-is-float? str-is-int?
+                                        draw make-shape]]))
 
 ;;;;;;;;;;;;;;;;;;; state ;;;;;;;;;;;;;;;;;;;
 ;; these strings are classes to add to form inputs. if its is-invalid the form input is red
