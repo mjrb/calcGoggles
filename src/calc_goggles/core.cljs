@@ -9,11 +9,18 @@
 
 (enable-console-print!)
 (defonce app-state (atom {:api-key "calcgoggles-qwpga"
+                          :anon-api-key "calcgoggles-anon-nreiw"
                           :content [model-browser]
                           :client #js{}
                           :logged-in false
                           :shape #js{}
                           }))
+;;get initials anonymous client
+(let [[client-chan err-chan] (s/get-client (@app-state :anon-api-key))]
+  (go (swap! app-state assoc :client (<! client-chan))
+      (print (str "got anon client" (.authedId (@app-state :client)))))
+  (go (js/alert (str "failed to connect to calcGoggles. please try to refresh page to reconnect. "
+                     (<! err-chan)))))
 
 (defn set-shape [new-shape]
   (print (@app-state :shape))
