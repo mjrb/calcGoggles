@@ -22,10 +22,20 @@
   (go (js/alert (str "failed to connect to calcGoggles. please try to refresh page to reconnect. "
                      (<! err-chan)))))
 
-(defn set-shape [new-shape]
-  (print (@app-state :shape))
+(defn send-shape [new-shape]
   (swap! app-state assoc :shape new-shape)
-  (print (@app-state :shape)))
+  (let [owner-id (.authedId (:client @app-state))
+        objects (-> (@app-state :client)
+                    (.service "mongodb" "mongodb-atlas")
+                    (.db "test")
+                    (.collection "objects"))]
+    (aset new-shape "owner_id" owner-id)
+    (-> (.updateOne objects #js{:name (aget new-shape "name")
+                            :owner_id owner-id}
+                    new-shape #js{:upsert true})
+        (.then (fn [amount] (js/alert "success")))
+        (.catch js/alert)
+        )))
 
 (defn on-js-reload [] )
 
@@ -47,7 +57,7 @@
     [:span
      [:input.btn.btn-primary
       {:value "create" :type "button"
-       :on-click #(swap! app-state assoc :content [creator set-shape])}]
+       :on-click #(swap! app-state assoc :content [creator send-shape])}]
      [:input.btn.btn-primary
       {:value "log out" :type "button"
        :on-click #(do (swap! app-state assoc :content [model-browser])
@@ -55,8 +65,6 @@
                       ;;TODO why does this still give me auth id
                       (swap! app-state (fn [state]
                                          (.logout (state :client))
-                                         (print (.authedId (state :client)))
-                                         (print (.isAuthenticated (state :client)))
                                          state)
                              ))}]]
     ;;else
@@ -80,19 +88,6 @@
    [auth-buttons (@app-state :logged-in)]
    (@app-state :content)
    ])
-
-(defn testcomp []
-  [:div
-   [:input.btn.btn-primary
-    {:value "log in" :type "button"
-     :on-click (fn [] (swap! app-state assoc :content
-                         [:div (reagent/as-element [utils/login-box app-state])]))
-     }]
-   (@app-state :content)]
-   )
-
-(defn comp1 []
-  [:h1 "test text"])
 
 (reagent/render-component
  [app]
