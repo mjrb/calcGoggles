@@ -48,10 +48,10 @@ modelMaker={
 	//str+="v:"+shape.v+"\n";
 	str+="f:"+shape.f+"\n";
 	shape.name=name;
-	var s={};
-	s.name=shape.name;
-	s.f=shape.f;
-	s.v=shape.v;
+	shape.minx=minx;
+	shape.maxx=maxx;
+	shape.crossSections=N;
+	shape.vscale=vscale;
 	//console.log(JSON.stringify(shape));
 	/*stitch.StitchClientFactory.create("calcgoggles-qwpga")
 	    .then((client)=>console.log("sucess!",client))
