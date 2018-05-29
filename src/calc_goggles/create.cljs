@@ -134,7 +134,8 @@
    [func-inputs]
    [export-inputs]
    [:br]
-   [:input.btn.btn-primary {:type "button" :on-click (validate-shape shape-handler) :value "Make Shape!"}]
+   [:input.btn.btn-primary {:type "button" :value "Make Shape!"
+                            :on-click (validate-shape shape-handler)}]
    ])
 
 (defn error-list []
