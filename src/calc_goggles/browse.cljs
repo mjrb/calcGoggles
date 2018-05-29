@@ -1,8 +1,9 @@
 (ns calc-goggles.browse
   (:require [calc-goggles.stitch :as s]
-            [reagent.core :as reagent]
+            [reagent.core :as reagent :refer [atom]]
             [cljs.core.async :as a]))
-(defonce objects (atom #js[#js{:name "one"} #js{:name "two"} #js{:name "three"}] ))
+(defonce objects (atom #js[] ))
+(print (empty? @objects))
 (defonce re-poll (atom true))
 (defn reset []
   (reset! objects #js[])
@@ -11,37 +12,33 @@
 (defn update-objects [app-state]
   (let [objects-coll
           (s/atlas-db-coll (:client @app-state) ( :db-name @app-state) "objects")]
-    (-> (.find objects-coll #js{} #js{:name true})
+    (-> (.find objects-coll #js{} #js{:name true :_id true})
         (.execute)
         (.then (fn [objs] (reset! objects objs)
                  ;;i probably shouldn't do this, but ... idk
-                 (reagent/force-update-all)
                  (print @objects)
                  ))
         (.catch #(js/alert (str "model-browser querry error: " %)))
         )))
 (defn possibly-update-objects [app-state]
-    (if @re-poll
-        (do (update-objects app-state)
-            (reset! re-poll false)
-            (print "here1")
-            )
-        (do (reset! re-poll true)
-            (print "here2")
-           )))
+    (if (empty? @objects)
+      (do (update-objects app-state)
+          )))
+(defn object-list-item [object]
+  [:li (.-name object)
+   [:input {:type "button" :value "edit"
+            :on-click #(print (.-_id object))}]
+    [:input {:type "button" :value "view"
+            :on-click #(print (.-_id object))}]
+   ])
 (defn model-browser [app-state]
-  (print "h1")
   (possibly-update-objects app-state)
-  (print "h2")
- ; (reagent/create-class
- ;  {:display-name "model-browser"
- ;   :reagent-render (fn [] (print "h3")
+  (reagent/create-class
+   {:display-name "model-browser"
+    :reagent-render (fn [] (if (not-empty @objects)
                       (into [:ul] (map (fn [obj]
-                                         [:li (.-name obj)])
-                                       @objects)
-                            ))
- ;   :component-will-unmount #(print "unmount") }
-;   ))
-(a/go-loop []
-  (a/<! (a/timeout 1000))
-  (print @objects))
+                                         (reagent/as-element [object-list-item obj]))
+                                         @objects))
+                      [:ul [:li "loading"] [:li "objects"]]))
+    :component-will-unmount #(reset! objects #js[]) }
+   ))
