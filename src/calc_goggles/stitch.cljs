@@ -58,3 +58,12 @@
           (>! client-chan sclient)
           ))
     [client-chan err-chan]))
+(defn atlas-db [client db-name]
+  (-> client
+      (.service "mongodb" "mongodb-atlas")
+      (.db db-name)))
+(defn atlas-db-coll [client db-name collection-name]
+  (-> client
+      (.service "mongodb" "mongodb-atlas")
+      (.db db-name)
+      (.collection collection-name)))
