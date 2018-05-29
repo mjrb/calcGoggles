@@ -10,27 +10,28 @@
 (enable-console-print!)
 (defonce app-state (atom {:api-key "calcgoggles-qwpga"
                           :anon-api-key "calcgoggles-anon-nreiw"
-                          :content [model-browser]
+                          :content [:span "loading..."]
                           :client #js{}
                           :logged-in false
                           :shape #js{}
+                          :db-name "test"
                           }))
 ;;get initials anonymous client
 (let [[client-chan err-chan] (s/get-client (@app-state :anon-api-key))]
-  (go (swap! app-state assoc :client (<! client-chan))
-      (print (str "got anon client" (.authedId (@app-state :client)))))
+  (go (let [client (<! client-chan)]
+        (.login client)
+        (swap! app-state assoc :client client)
+        (swap! app-state assoc :content (reagent/as-element [model-browser app-state]))
+        (print (str "got anon client" (.authedId (@app-state :client))))))
   (go (js/alert (str "failed to connect to calcGoggles. please try to refresh page to reconnect. "
                      (<! err-chan)))))
 
 (defn send-shape [new-shape]
   (swap! app-state assoc :shape new-shape)
-  (let [owner-id (.authedId (:client @app-state))
-        objects (-> (@app-state :client)
-                    (.service "mongodb" "mongodb-atlas")
-                    (.db "test")
-                    (.collection "objects"))]
-    (aset new-shape "owner_id" owner-id)
-    (-> (.updateOne objects #js{:name (aget new-shape "name")
+  (let [owner-id (.authedId (@app-state :client))
+        objects (s/atlas-db-coll (@app-state :client) (@app-state :db-name) "objects")]
+    (set! (.-owner_id new-shape) owner-id)
+    (-> (.updateOne objects #js{:name (.-name new-shape)
                             :owner_id owner-id}
                     new-shape #js{:upsert true})
         (.then (fn [amount] (js/alert "success")))
@@ -50,7 +51,9 @@
                                )))}]
    [:input.btn.btn-primary
     {:value "browse" :type "button"
-     :on-click #(swap! app-state assoc :content [model-browser])}]]
+     :on-click #(swap! app-state assoc :content
+                       (reagent/as-element [model-browser app-state]))
+     }]]
   )
 (defn auth-buttons [logged-in?]
   (if logged-in?
@@ -62,7 +65,7 @@
       {:value "log out" :type "button"
        :on-click #(do (swap! app-state assoc :content [model-browser])
                       (swap! app-state assoc :logged-in false)
-                      ;;TODO why does this still give me auth id
+                      ;;we only pretend to log out, because stitch doesn't really let us
                       (swap! app-state (fn [state]
                                          (.logout (state :client))
                                          state)
