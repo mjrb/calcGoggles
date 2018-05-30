@@ -1,7 +1,8 @@
 (ns calc-goggles.utils
   (:require [cljs.core.async :refer [go <! >! pipe]]
             [calc-goggles.stitch :as s]
-            [calc-goggles.browse :as browse]))
+            [calc-goggles.browse :as browse]
+            [reagent.core :as reagent]))
 ;;;;;;;;;;;;;; convinience functions ;;;;;;;;;;;;;;;
 
 (defn feild-value [id] (.-value (.getElementById js/document id)))
@@ -32,7 +33,7 @@
     (go
       (let [sclient (<! client-chan)]
         (swap! app-state assoc :client sclient)
-        (swap! app-state assoc :content [browse/model-browser])
+        (swap! app-state assoc :content (reagent/as-element [browse/model-browser app-state]))
         (swap! app-state assoc :logged-in true))
       )
   (go (js/alert  (<! err-chan)))))
