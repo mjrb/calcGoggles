@@ -13,7 +13,6 @@
                           :content [:span "loading..."]
                           :client #js{}
                           :logged-in false
-                          :shape #js{}
                           :db-name "test"
                           }))
 ;;get initials anonymous client
@@ -42,13 +41,6 @@
 
 (defn no-auth-buttons []
   [:span
-   [:input.btn.btn-primary
-    {:value "view" :type "button"
-     :on-click (fn [] (if (nil? (.-v (@app-state :shape) ))
-                        (js/alert "you must select a shape first")
-                        (swap! app-state assoc :content
-                               [model-viewer (@app-state :shape)]
-                               )))}]
    [:input.btn.btn-primary
     {:value "browse" :type "button"
      :on-click #(swap! app-state assoc :content
