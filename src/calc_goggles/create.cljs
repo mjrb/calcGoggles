@@ -77,24 +77,30 @@
       (js/alert "please fix the red feilds first")
       )
     ))
-
+(defonce defaults (atom {:eq "4 * sin(x) + 5 * cos(x/2)"
+                         :minx "-5"
+                         :maxx "5"
+                         :vscale "1"
+                         :name ""
+                         :xsections "6"
+                         }))
 ;;;;;;;;;;;;;;;;;;; components ;;;;;;;;;;;;;;;;;;;
 (defn func-inputs []
   [:div
    (label "Enter a Function: " "eq"
           [:input.form-control {:type "text" :id "eq"
-                                :default-value "4 * sin(x) + 5 * cos(x/2)"
+                                :default-value (@defaults :eq)
                                 :on-change validate-fn :class-name (:fn @valid)}])
    (label "Min x: " "minx"
-          [:input.form-control {:type "number" :id "minx" :default-value "-5"
+          [:input.form-control {:type "number" :id "minx" :default-value (@defaults :minx)
                                 :on-change (validate-number "minx" :minx) :step "any"
                                 :class-name (:minx @valid)}])
    (label "Max x: " "maxx"
-          [:input.form-control {:type "number" :id "maxx" :default-value "5"
+          [:input.form-control {:type "number" :id "maxx" :default-value (@defaults :maxx)
                                 :on-change (validate-number "maxx" :maxx) :step "any"
                                 :class-name (:maxx @valid)}])
    (label "Vertical Scale: " "vscale"
-          [:input.form-control {:type "number" :id "vscale" :default-value "1"
+          [:input.form-control {:type "number" :id "vscale" :default-value (@defaults :vscale)
                                 :on-change (validate-number "vscale" :vscale) :step "any"
                                 :class-name (:vscale @valid)}])
    ])
@@ -119,10 +125,10 @@
 (defn export-inputs []
   [:div
    (label "Shape Name: " "name"
-          [:input.form-control {:type "text" :id "name"
+          [:input.form-control {:type "text" :id "name" :default-value (@defaults :name)
                                 :on-change validate-name :class-name (:name @valid)}])
    (label "Number of Cross Sections" "number"
-          [:input.form-control {:type "number" :id "number" :default-value "6"
+          [:input.form-control {:type "number" :id "number" :default-value (@defaults :xsections)
                    :on-change validate-xsections
                    :class-name (:number @valid)}])
    (label "Cross Section Type: ")
