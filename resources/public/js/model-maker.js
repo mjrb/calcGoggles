@@ -52,6 +52,7 @@ modelMaker={
 	shape.maxx=maxx;
 	shape.crossSections=N;
 	shape.vscale=vscale;
+	shape.crossSectionType=$("input:checked").val();
 	//console.log(JSON.stringify(shape));
 	/*stitch.StitchClientFactory.create("calcgoggles-qwpga")
 	    .then((client)=>console.log("sucess!",client))
