@@ -18,14 +18,17 @@
                           }))
 ;;get initials anonymous client
 (defn anon-login []
-(let [[client-chan err-chan] (s/get-client (@app-state :anon-api-key))]
-  (go (let [client (<! client-chan)]
-        (.login client)
-        (swap! app-state assoc :client client)
-        (swap! app-state assoc :content (reagent/as-element [model-browser app-state]))
-        (print (str "got anon client" (.authedId (@app-state :client))))))
-  (go (js/alert (str "failed to connect to calcGoggles. please try to refresh page to reconnect. "
-                     (<! err-chan))))))
+  (let [[client-chan err-chan] (s/get-client (@app-state :anon-api-key))]
+    (go (let [client (<! client-chan)]
+          (-> (.login client)
+              (.then (fn [id]
+                       (swap! app-state assoc :client client)
+                       (swap! app-state assoc :content (reagent/as-element [model-browser app-state]))
+                       (print (str "got anon client" (.authedId (@app-state :client))))))
+              (.catch js/alert))
+          
+          (go (js/alert (str "failed to connect to calcGoggles. please try to refresh page to reconnect. "
+                             (<! err-chan))))))))
 (anon-login)
 
 (defn send-shape [new-shape]
@@ -44,7 +47,7 @@
 (defn on-js-reload [] )
 
 (defn no-auth-buttons []
-  [:span
+  [:span.btn-group {:style {:margin-right -4}}
    [:input.btn.btn-secondary {:value "calcGoggles" :type "button"}]
    [:input.btn.btn-primary
     {:value "browse" :type "button"
@@ -54,7 +57,7 @@
   )
 (defn auth-buttons [logged-in?]
   (if logged-in?
-    [:span
+    [:span.btn-group
      [:input.btn.btn-primary
       {:value "create" :type "button"
        :on-click #(swap! app-state assoc :content [creator send-shape])}]
@@ -69,7 +72,7 @@
                                          state)
                              ))}]]
     ;;else
-    [:span
+    [:span.btn-group
      [:input.btn.btn-primary
      {:value "log in" :type "button"
       :on-click #(swap! app-state assoc :content
@@ -85,11 +88,10 @@
 
 (defn app []
   [:div
-   [no-auth-buttons]
-   [auth-buttons (@app-state :logged-in)]
-   (@app-state :content)
-   ])
-
+   [:div.btn-toolbar {:style {:margin-bottom 10}}
+    [no-auth-buttons]
+    [auth-buttons (@app-state :logged-in)]]
+   (@app-state :content)])
 (reagent/render-component
  [app]
  (. js/document (getElementById "app")))
