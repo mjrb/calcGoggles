@@ -53,33 +53,33 @@
 
 ;;components
 (defn register-box [api-key]
-  [:div
-   (label "username" "uname"
-          [:input {:type "text" :id "uname"}])
+  [:div.container
+   (label "email" "uname"
+          [:input.form-control {:type "text" :id "uname"}])
    (label "password" "pass"
-          [:input {:type "password" :id "pass"}])
-   [:input {:type "button" :value "register!"
+          [:input.form-control {:type "password" :id "pass"}])
+   [:input.btn.btn-primary {:type "button" :value "register!"
             :on-click #(register (feild-value "uname") (feild-value "pass") api-key)}]
    ])
 
 (defn password-reset-box [api-key]
-  [:div
-   (label "username" "uname"
-          [:input {:type "text" :id "uname"}])
-   [:input {:type "button" :value "send password reset"
+  [:div.container
+   (label "email" "uname"
+          [:input.form-control {:type "text" :id "uname"}])
+   [:input.btn.btn-primary {:type "button" :value "send password reset"
             :on-click #(password-reset (feild-value "uname") api-key) }]
    ])
 
 (defn login-box [app-state]
-   [:div
-    (label "username" "uname"
-           [:input {:type "text" :id "uname"}])
+   [:div.container
+    (label "email" "uname"
+           [:input.form-control {:type "text" :id "uname"}])
     (label "password" "pass"
-           [:input {:type "password" :id "pass"}])
-    [:input {:type "button" :value "login"
+           [:input.form-control {:type "password" :id "pass"}])
+    [:input.btn.btn-primary {:type "button" :value "login"
              :on-click #(login (feild-value "uname") (feild-value "pass") app-state)
              }]
-    [:input
+    [:input.btn.btn-primary
      {:value "forgot password?" :type "button"
       :on-click #(swap! app-state assoc :content [password-reset-box (@app-state :api-key)])
       }]
