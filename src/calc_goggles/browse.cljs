@@ -39,7 +39,7 @@
 
 (defn object-list-item [object app-state]
   [:li 
-    [:input {:type "button" :value "view"
+    [:input.btn.btn-secondary {:type "button" :value "view" :style {:margin-bottom 2}
              :on-click #(view-object (.-_id object) app-state)}]
    (.-name object)
    ])
@@ -61,8 +61,8 @@
   (reagent/create-class
    {:display-name "model-browser"
     :reagent-render (fn [] [:div.container
-                            [:input.form-controls
-                             {:id "query"
+                            [:input.form-control
+                             {:id "query" :style {:width "70%" :display "inline-block"}
                               :placeholder "object name"
                               :on-change obj-search}]
                             [:input.btn.btn-primary {:type "button" :value "search!"
