@@ -1,9 +1,9 @@
 (ns calc-goggles.browse
   (:require [calc-goggles.stitch :as s]
             [calc-goggles.view :refer [model-viewer]]
-            [calc-goggles.utils :refer [feild-value]]
             [reagent.core :as reagent :refer [atom]]
             [cljs.core.async :as a]))
+(defn feild-value [id] (.-value (.getElementById js/document id)))
 (defonce objects (atom #js[]))
 (defonce all-objects (atom #js[]))
 (print (empty? @objects))
@@ -53,20 +53,22 @@
 ;TODO impl username based search
 (defn obj-search []
   (let [query (feild-value "query")]
-    (swap! objects filter (fn [obj] (contains query (.name obj))) @all-objects)))
+    (print "ss")
+    (swap! objects #(filter (fn [obj] (contains query (.-name obj))) @all-objects))))
+
 (defn model-browser [app-state]
   (possibly-update-objects app-state)
   (reagent/create-class
    {:display-name "model-browser"
-    :reagent-render (fn [] (if (not-empty @objects)
-                             [:div.container
-                              [:input.form-controls
-                               {:id "query"
-                                :default-value "object name"}]
-                              [:input.btn.btn-primary {:value "search!"
-                                                       :on-click obj-search}]
+    :reagent-render (fn [] [:div.container
+                            [:input.form-controls
+                             {:id "query"
+                              :placeholder "object name"
+                              :on-change obj-search}]
+                            [:input.btn.btn-primary {:type "button" :value "search!"
+                                                     :on-click obj-search}]
+                            (if (not-empty @objects)
                               (reagent/as-element [object-list app-state])
-                              ]
-                      [:ul [:li "loading"] [:li "objects"]]))
+                              [:span [:br][:div.alert-warning "No objects found :( sorry"]])])
     :component-will-unmount #(reset! objects #js[]) }
    ))
