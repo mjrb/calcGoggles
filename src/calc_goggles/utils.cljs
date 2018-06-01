@@ -76,11 +76,12 @@
            [:input.form-control {:type "text" :id "uname"}])
     (label "password" "pass"
            [:input.form-control {:type "password" :id "pass"}])
-    [:input.btn.btn-primary {:type "button" :value "login"
-             :on-click #(login (feild-value "uname") (feild-value "pass") app-state)
-             }]
-    [:input.btn.btn-primary
-     {:value "forgot password?" :type "button"
-      :on-click #(swap! app-state assoc :content [password-reset-box (@app-state :api-key)])
-      }]
+    [:span.btn-group
+     [:input.btn.btn-primary {:type "button" :value "login"
+                              :on-click #(login (feild-value "uname") (feild-value "pass") app-state)
+                              }]
+     [:input.btn.btn-primary
+      {:value "forgot password?" :type "button"
+       :on-click #(swap! app-state assoc :content [password-reset-box (@app-state :api-key)])
+       }]]
     ])
