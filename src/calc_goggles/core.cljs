@@ -7,7 +7,7 @@
             [calc-goggles.utils :as utils :refer [feild-value label]]
             [calc-goggles.browse :refer [model-browser view-object]]))
 
-(enable-console-print!)
+;(enable-console-print!)
 ;; apikeys here are ok because this will be secured by an authorized orgin in stitch
 (defonce app-state (atom {:api-key "calcgoggles-qwpga"
                           :anon-api-key "calcgoggles-anon-nreiw"
@@ -69,7 +69,7 @@
                       (swap! app-state (fn [state]
                                          (.logout (state :client))
                                          (anon-login)
-                                         state)
+                                         (assoc state :content (reagent/as-element [model-browser app-state])))
                              ))}]]
     ;;else
     [:span.btn-group
