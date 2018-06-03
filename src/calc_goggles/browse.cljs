@@ -49,7 +49,10 @@
                (reagent/as-element [object-list-item obj app-state]))
              @objects)))
 (defn contains [string other]
-  (some? (re-find (re-pattern (str "(?i)" string)) other)))
+  (try
+    (some? (re-find (re-pattern (str "(?i)" string)) other))
+    (catch js/Error e e)
+  ))
 ;TODO impl username based search
 (defn obj-search []
   (let [query (feild-value "query")]
