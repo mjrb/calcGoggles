@@ -28,6 +28,21 @@
     [:br]]))
 
 ;;login-handlers
+;;get initials anonymous client
+(defn anon-login [app-state]
+  (-> (s/get-clientp (@app-state :anon-api-key))
+      (.then (fn [client] (.login client) client))
+      (.then (fn [client]
+               (swap! app-state assoc :client client)
+               (swap! app-state assoc :content
+                      (reagent/as-element [browse/model-browser app-state]))
+               (print (str "got anon client"
+                           (.authedId (@app-state :client))))))
+      (.catch (fn [err] (js/alert (str "failed to connect to calcGoggles."
+                             "please try to refresh page to reconnect. "
+                             err))))
+               ))
+
 (defn login [username password app-state]
   (let [[client-chan err-chan] (s/get-client-login (@app-state :api-key) username password)]
     (go
