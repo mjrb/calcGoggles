@@ -6,7 +6,6 @@
 (defn feild-value [id] (.-value (.getElementById js/document id)))
 (defonce objects (atom #js[]))
 (defonce all-objects (atom #js[]))
-(print (empty? @objects))
 (defonce re-poll (atom true))
 (defn reset []
   (reset! objects #js[])
@@ -20,7 +19,6 @@
         (.then (fn [objs]
                  (reset! objects objs)
                  (reset! all-objects objs)
-                 (print @objects)
                  ))
         (.catch #(js/alert (str "model-browser querry error: " %)))
         )))
@@ -56,7 +54,6 @@
 ;TODO impl username based search
 (defn obj-search []
   (let [query (feild-value "query")]
-    (print "ss")
     (swap! objects #(filter (fn [obj] (contains query (.-name obj))) @all-objects))))
 
 (defn model-browser [app-state]
