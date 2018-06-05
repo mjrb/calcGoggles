@@ -38,6 +38,21 @@
         (.then (fn [id-object] (view-object (.-_id id-object) app-state)))
         (.catch js/alert)
         )))
+(defn browse-button []
+  (if (not (.isAuthenticated (:client @app-state)))
+    (-> (s/get-clientp (@app-state :anon-api-key))
+        (.then (fn [client]
+                 (swap! app-state assoc :client client)
+                 (.login client)))
+        (.then (fn [id]
+                 (swap! app-state assoc :content
+                        (reagent/as-element [model-browser app-state]))))
+        (.catch (fn [err] (js/alert (str "failed to connect to calcGoggles."
+                             "please try to refresh page to reconnect. "
+                             err))))
+        )
+  (swap! app-state assoc :content
+         (reagent/as-element [model-browser app-state]))))
 
 (defn on-js-reload [] )
 
@@ -46,11 +61,7 @@
    [:input.btn.btn-secondary {:value "calcGoggles" :type "button"}]
    [:input.btn.btn-primary
     {:value "browse" :type "button"
-     :on-click (fn []
-                 (if (not (.isAuthenticated (:client @app-state)))
-                   (anon-login app-state))
-                 (swap! app-state assoc :content
-                       (reagent/as-element [model-browser app-state])))
+     :on-click browse-button
      }]]
   )
 (defn auth-buttons [logged-in?]
