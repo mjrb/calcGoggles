@@ -11,10 +11,13 @@
   (reset! objects #js[])
   (re-poll))
 
-(defn update-objects [app-state]
+(defn update-objects [query app-state]
   (let [objects-coll
           (s/atlas-db-coll (:client @app-state) ( :db-name @app-state) "objects")]
-    (-> (.find objects-coll #js{} #js{:name true :_id true})
+    (-> (.find objects-coll
+               #js{:name query}
+               #js{:name true :_id true})
+        (.limit 500)
         (.execute)
         (.then (fn [objs]
                  (reset! objects objs)
@@ -24,7 +27,7 @@
         )))
 (defn possibly-update-objects [app-state]
     (if (empty? @objects)
-      (do (update-objects app-state)
+      (do (update-objects "*" app-state)
           )))
 
 (defn view-object [id app-state]
@@ -52,6 +55,9 @@
     (catch js/Error e e)
   ))
 ;TODO impl username based search
+(defn query-change []
+  (let [query (feild-value "query")]
+    (swap! objects #(filter (fn [obj] (contains query (.-name obj))) @all-objects))))
 (defn obj-search []
   (let [query (feild-value "query")]
     (swap! objects #(filter (fn [obj] (contains query (.-name obj))) @all-objects))))
@@ -64,7 +70,7 @@
                             [:input.form-control
                              {:id "query" :style {:width "70%" :display "inline-block"}
                               :placeholder "object name"
-                              :on-change obj-search}]
+                              :on-change query-change}]
                             [:input.btn.btn-primary {:type "button" :value "search!"
                                                      :on-click obj-search}]
                             (if (not-empty @objects)
