@@ -2,79 +2,69 @@
   (:require [calc-goggles.stitch :as s]
             [calc-goggles.view :refer [model-viewer]]
             [reagent.core :as reagent :refer [atom]]
-            [cljs.core.async :as a]))
-(defn feild-value [id] (.-value (.getElementById js/document id)))
+            [cljs.core.async :as a]
+            [calc-goggles.utils :as utils :refer [feild-value contains]]))
 (defonce objects (atom #js[]))
 (defonce all-objects (atom #js[]))
-(defonce re-poll (atom true))
-(defn reset []
-  (reset! objects #js[])
-  (re-poll))
 
-(defn update-objects [query app-state]
-  (let [objects-coll
-          (s/atlas-db-coll (:client @app-state) ( :db-name @app-state) "objects")]
-    (-> (.find objects-coll
-               #js{:name query}
-               #js{:name true :_id true})
-        (.limit 500)
-        (.execute)
-        (.then (fn [objs]
-                 (reset! objects objs)
-                 (reset! all-objects objs)
-                 ))
-        (.catch #(js/alert (str "model-browser querry error: " %)))
-        )))
-(defn possibly-update-objects [app-state]
-    (if (empty? @objects)
-      (do (update-objects "*" app-state)
-          )))
+(defn fetch-objects [app-state-atom]
+  (-> (utils/get-objects-coll @app-state-atom)
+      (.find #js{}
+             #js{:name true :_id true})
+      (.limit 500)
+      (.execute)
+      (.then (fn [objs]
+               (reset! objects objs)
+               (reset! all-objects objs)
+               ))
+      (.catch #(js/alert (str "model-browser querry error: " %)))
+      ))
 
-(defn view-object [id app-state]
-  (-> (s/atlas-db-coll (@app-state :client) (@app-state :db-name) "objects")
+(defn view-object [id app-state-atom]
+  (-> (utils/get-objects-coll @app-state-atom)
       (.findOne #js{:_id id})
-;      (.execute)
-      (.then #(swap! app-state assoc :content (reagent/as-element [model-viewer %])))
+      (.then #(utils/set-content! app-state-atom [model-viewer %]))
       (.catch #(js/alert %))
       ))
 
-(defn object-list-item [object app-state]
+;;TODO impl username based search
+(defn name-filter [obj]
+  (contains query (.-name obj)))
+(defn local-search []
+  (let [query (feild-value "query")]
+    (swap! objects #(filter name-filter  @all-objects))))
+;;TODO have this actualy goto db to get more results
+(defn db-search []
+  (let [query (feild-value "query")]
+    (swap! objects #(filter name-filter @all-objects))))
+
+;;components
+(defn object-list-item [object app-state-atom]
   [:li 
-    [:input.btn.btn-secondary {:type "button" :value "view" :style {:margin-bottom 2}
-             :on-click #(view-object (.-_id object) app-state)}]
-   (.-name object)
-   ])
-(defn object-list [app-state]
+    (utils/boot-btn-secondary "view" 
+                              #(view-object (.-_id object) app-state-atom)
+                              {:style {:margin-bottom 2}})
+   (.-name object)])
+
+(defn object-list [app-state-atom]
   (into [:ul]
         (map (fn [obj]
-               (reagent/as-element [object-list-item obj app-state]))
-             @objects)))
-(defn contains [string other]
-  (try
-    (some? (re-find (re-pattern (str "(?i)" string)) other))
-    (catch js/Error e e)
-  ))
-;TODO impl username based search
-(defn query-change []
-  (let [query (feild-value "query")]
-    (swap! objects #(filter (fn [obj] (contains query (.-name obj))) @all-objects))))
-(defn obj-search []
-  (let [query (feild-value "query")]
-    (swap! objects #(filter (fn [obj] (contains query (.-name obj))) @all-objects))))
+               [object-list-item obj app-state-atom])
+                   @objects)))
 
-(defn model-browser [app-state]
-  (possibly-update-objects app-state)
+(defn render-browser [app-state-atom]
+  [:div.container
+   [:input.form-control
+    {:id "query" :style {:width "70%" :display "inline-block"}
+     :placeholder "object name"
+     :on-change local-search}]
+   (utils/boot-btn-primary "search!" db-search)
+   (if (not-empty @objects)
+     (reagent/as-element [object-list app-state-atom])
+     [:span [:br][:div.alert-warning "No objects found :( sorry"]])])
+
+(defn model-browser [app-state-atom]
   (reagent/create-class
    {:display-name "model-browser"
-    :reagent-render (fn [] [:div.container
-                            [:input.form-control
-                             {:id "query" :style {:width "70%" :display "inline-block"}
-                              :placeholder "object name"
-                              :on-change query-change}]
-                            [:input.btn.btn-primary {:type "button" :value "search!"
-                                                     :on-click obj-search}]
-                            (if (not-empty @objects)
-                              (reagent/as-element [object-list app-state])
-                              [:span [:br][:div.alert-warning "No objects found :( sorry"]])])
-    :component-will-unmount #(reset! objects #js[]) }
-   ))
+    :reagent-render #(render-browser app-state-atom)
+    :component-will-mount #(fetch-objects app-state-atom)}))
