@@ -1,7 +1,5 @@
 (ns calc-goggles.utils
-  (:require [cljs.core.async :refer [go <! >! pipe]]
-            [calc-goggles.stitch :as s]
-            [calc-goggles.browse :as browse]
+  (:require [calc-goggles.stitch :as s]
             [reagent.core :as reagent]))
 ;;;;;;;;;;;;;; convinience functions ;;;;;;;;;;;;;;;
 
@@ -27,76 +25,36 @@
     [:label label-text]
     [:br]]))
 
-;;login-handlers
-;;get initials anonymous client
-(defn anon-login [app-state]
-  (-> (s/get-clientp (@app-state :anon-api-key))
-      (.then (fn [client] (.login client) client))
-      (.then (fn [client]
-               (swap! app-state assoc :client client)
-               (swap! app-state assoc :content
-                      (reagent/as-element [browse/model-browser app-state]))
-               (print (str "got anon client"
-                           (.authedId (@app-state :client))))))
-      (.catch (fn [err] (js/alert (str "failed to connect to calcGoggles."
-                             "please try to refresh page to reconnect. "
-                             err))))
-               ))
+(defn contains [string other]
+  (try
+    (some? (re-find (re-pattern (str "(?i)" string)) other))
+    (catch js/Error e e)
+  ))
 
-(defn login [username password app-state]
-  (let [[client-chan err-chan] (s/get-client-login (@app-state :api-key) username password)]
-    (go
-      (let [sclient (<! client-chan)]
-        (swap! app-state assoc :client sclient)
-        (swap! app-state assoc :content (reagent/as-element [browse/model-browser app-state]))
-        (swap! app-state assoc :logged-in true))
-      )
-  (go (js/alert  (<! err-chan)))))
 
-(defn register [username password api-key]
-  (let [[client-chan err-chan] (s/register-email username password api-key)]
-    (go (<! client-chan)
-        (js/alert "confirmation email sent!"))
-    (go (js/alert (<! err-chan)))
-    ))
+(defn get-objects-coll [app-state]
+  "takes in app-state hashmap and gives a stitch/mongo collection"
+  (s/atlas-db-coll (:client app-state)
+                   (:db-name app-state)
+                   "objects"))
+(defn boot-btn
+  "creates bootstrap button component"
+  ([value on-click]
+   (boot-btn value on-click {}))
+  ([value on-click props]
+   [:input.btn (conj {:type "button"
+                      :value value
+                      :on-click on-click}
+                     props)]))
+(defn boot-btn-class
+  "makes a bootstrap button with a given class"
+  ([class value on-click]
+   (boot-btn-class class value on-click {}))
+  ([class value on-click props]
+   (let [class-name (str class " " (:class-name props))]
+     (boot-btn value on-click (assoc props :class-name class-name)))))
+(def boot-btn-primary (partial boot-btn-class "btn-primary"))
+(def boot-btn-secondary (partial boot-btn-class "btn-secondary"))
 
-(defn password-reset [email api-key]
-  (let [[success-chan err-chan] (s/email-reset-password email api-key)]
-    (go (<! success-chan)
-        (js/alert "reset link sent!"))
-    (go (js/alert (<! err-chan)))))
-
-;;components
-(defn register-box [api-key]
-  [:div.container
-   (label "email" "uname"
-          [:input.form-control {:type "text" :id "uname"}])
-   (label "password" "pass"
-          [:input.form-control {:type "password" :id "pass"}])
-   [:input.btn.btn-primary {:type "button" :value "register!"
-            :on-click #(register (feild-value "uname") (feild-value "pass") api-key)}]
-   ])
-
-(defn password-reset-box [api-key]
-  [:div.container
-   (label "email" "uname"
-          [:input.form-control {:type "text" :id "uname"}])
-   [:input.btn.btn-primary {:type "button" :value "send password reset"
-            :on-click #(password-reset (feild-value "uname") api-key) }]
-   ])
-
-(defn login-box [app-state]
-   [:div.container
-    (label "email" "uname"
-           [:input.form-control {:type "text" :id "uname"}])
-    (label "password" "pass"
-           [:input.form-control {:type "password" :id "pass"}])
-    [:span.btn-group
-     [:input.btn.btn-primary {:type "button" :value "login"
-                              :on-click #(login (feild-value "uname") (feild-value "pass") app-state)
-                              }]
-     [:input.btn.btn-primary
-      {:value "forgot password?" :type "button"
-       :on-click #(swap! app-state assoc :content [password-reset-box (@app-state :api-key)])
-       }]]
-    ])
+(defn set-content! [app-state-atom hiccup]
+  (swap! app-state-atom assoc :content (reagent/as-element hiccup)))
