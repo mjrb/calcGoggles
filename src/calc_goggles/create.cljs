@@ -2,9 +2,9 @@
   (:require [reagent.core :as reagent :refer [atom]]
             [clojure.string :refer [blank?]]
             [calc-goggles.view :refer [model-viewer]]
-            [calc-goggles.utils :refer [feild-value label
-                                        str-is-float? str-is-int?
-                                        draw make-shape]]))
+            [calc-goggles.utils :as utils :refer [feild-value label
+                                                  str-is-float? str-is-int?
+                                                  draw make-shape]]))
 
 ;;;;;;;;;;;;;;;;;;; state ;;;;;;;;;;;;;;;;;;;
 ;; these strings are classes to add to form inputs. if its is-invalid the form input is red
@@ -140,8 +140,7 @@
    [func-inputs]
    [export-inputs]
    [:br]
-   [:input.btn.btn-primary {:type "button" :value "Make Shape!"
-                            :on-click (validate-shape shape-handler)}]
+   (utils/boot-btn-primary "Make Shape!" (validate-shape shape-handler))
    ])
 
 (defn error-list []
@@ -160,11 +159,11 @@
 ;; this is the top level component
 (defn creator [shape-handler]
   (reagent/create-class
-   {:reagent-render (fn [] [:div
-                       [:div.row
-                        [creator-form shape-handler]
-                        [plot]]
-                       [error-list]
-                            ])
+   {:reagent-render
+    (fn [] [:div
+            [:div.row
+             [creator-form shape-handler]
+             [plot]]
+            [error-list]])
     :component-will-unmount reset-state
     }))
