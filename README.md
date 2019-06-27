@@ -1,6 +1,6 @@
 # calc-goggles
 
-visualisaion platform for aplication of integrals
+visualization platform for aplication of integrals
 
 ## Overview
 This started out as a project for HackRU fall 2017 and won best use of mongodb
